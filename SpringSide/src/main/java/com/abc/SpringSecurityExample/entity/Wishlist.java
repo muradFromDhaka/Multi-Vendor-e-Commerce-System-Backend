@@ -11,16 +11,16 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-@Table(name="Wishlist")
+@Table(name="wishlists")
 public class Wishlist extends BaseEntity{
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", unique = true)
     private User user;
     
     
     // Wishlist can contain many products
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "wishlist_products",
             joinColumns = @JoinColumn(name = "wishlist_id"),

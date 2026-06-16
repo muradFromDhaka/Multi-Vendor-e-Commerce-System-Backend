@@ -9,9 +9,7 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString(exclude = {"user", "product"})
 @Table(name="reviews")
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Review extends BaseEntity{
     
     private Double rating; // 1 to 5

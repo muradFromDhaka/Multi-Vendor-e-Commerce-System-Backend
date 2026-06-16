@@ -6,6 +6,10 @@ import com.abc.SpringSecurityExample.entity.Brand;
 import com.abc.SpringSecurityExample.mapper.BrandMapper;
 import com.abc.SpringSecurityExample.repository.BrandRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,8 +25,6 @@ public class BrandService {
     private final BrandRepository brandRepository;
     private final FileStorageService fileStorageService;
 
-    // ---------------- CREATE ----------------
-    @Transactional
     public BrandResponseDto create(BrandRequestDto dto, MultipartFile logo) throws IOException {
         Brand brand = BrandMapper.toEntity(dto);
 
@@ -36,7 +38,6 @@ public class BrandService {
         return BrandMapper.toResponseDto(saved);
     }
 
-    // ---------------- UPDATE ----------------
     @Transactional
     public BrandResponseDto update(Long id, BrandRequestDto dto, MultipartFile logo) throws IOException {
         Brand brand = brandRepository.findById(id)
@@ -45,9 +46,7 @@ public class BrandService {
         brand.setName(dto.getName());
         brand.setDescription(dto.getDescription());
 
-        // Handle logo update
         if (logo != null && !logo.isEmpty()) {
-            // Delete old logo if exists
             if (brand.getLogoUrl() != null) {
                 fileStorageService.deleteFile(brand.getLogoUrl());
             }
@@ -59,7 +58,6 @@ public class BrandService {
         return BrandMapper.toResponseDto(updated);
     }
 
-    // ---------------- DELETE ----------------
     @Transactional
     public void delete(Long id) throws IOException {
         Brand brand = brandRepository.findById(id)
@@ -73,20 +71,19 @@ public class BrandService {
         brandRepository.delete(brand);
     }
 
-    // ---------------- GET BY ID ----------------
-    @Transactional(readOnly = true)
     public BrandResponseDto getById(Long id) {
         Brand brand = brandRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Brand not found"));
         return BrandMapper.toResponseDto(brand);
     }
 
-    // ---------------- GET ALL ----------------
-    @Transactional(readOnly = true)
-    public List<BrandResponseDto> getAll() {
-        return brandRepository.findAll()
-                .stream()
-                .map(BrandMapper::toResponseDto)
-                .collect(Collectors.toList());
+    public Page<BrandResponseDto> getAll(int page, int size, String sortBy, String sortDir) {
+        Sort sort = sortDir.equalsIgnoreCase("desc")
+                ?Sort.by(sortBy).descending()
+                :Sort.by(sortBy).ascending();
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+        return brandRepository.findAll(pageable)
+                .map(BrandMapper::toResponseDto);
     }
 }

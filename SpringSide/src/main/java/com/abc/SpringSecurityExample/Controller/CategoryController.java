@@ -4,6 +4,8 @@ import com.abc.SpringSecurityExample.DTOs.projectDtos.CategoryRequestDto;
 import com.abc.SpringSecurityExample.DTOs.projectDtos.CategoryResponseDto;
 import com.abc.SpringSecurityExample.service.CategoryService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,8 +21,8 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @GetMapping
-    public List<CategoryResponseDto> getAllCategories() {
-        return categoryService.getAllCategories();
+    public Page<CategoryResponseDto> getAllCategories(Pageable pageable) {
+        return categoryService.getAllCategories(pageable);
     }
 
 
@@ -60,13 +62,24 @@ public class CategoryController {
 
     // ---------------- GET ALL ROOT CATEGORIES ----------------
     @GetMapping("/root")
-    public ResponseEntity<List<CategoryResponseDto>> getAllRootCategories() {
-        return ResponseEntity.ok(categoryService.getAllRootCategories());
+    public ResponseEntity<Page<CategoryResponseDto>> getAllRootCategories(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir
+    ) {
+        return ResponseEntity.ok(categoryService.getAllRootCategories(page, size, sortBy,sortDir));
     }
 
     // ---------------- GET SUBCATEGORIES ----------------
     @GetMapping("/{id}/subcategories")
-    public ResponseEntity<List<CategoryResponseDto>> getSubCategories(@PathVariable Long id) {
-        return ResponseEntity.ok(categoryService.getSubCategories(id));
+    public ResponseEntity<Page<CategoryResponseDto>> getSubCategories(
+                                 @PathVariable Long id,
+                                 @RequestParam(defaultValue = "0") int page,
+                                 @RequestParam(defaultValue = "10") int size,
+                                 @RequestParam(defaultValue = "id") String sortBy,
+                                 @RequestParam(defaultValue = "asc") String sortDir
+    ) {
+        return ResponseEntity.ok(categoryService.getSubCategories(id, page, size, sortBy, sortDir));
     }
 }

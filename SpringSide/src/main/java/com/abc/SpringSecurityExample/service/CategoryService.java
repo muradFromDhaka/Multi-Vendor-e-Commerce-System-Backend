@@ -6,6 +6,10 @@ import com.abc.SpringSecurityExample.entity.Category;
 import com.abc.SpringSecurityExample.mapper.CategoryMapper;
 import com.abc.SpringSecurityExample.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -93,26 +97,32 @@ public class CategoryService {
 
     // ---------------- GET ALL ROOT CATEGORIES ----------------
     @Transactional(readOnly = true)
-    public List<CategoryResponseDto> getAllRootCategories() {
-        List<Category> rootCategories = categoryRepository.findByParentIsNull();
+    public Page<CategoryResponseDto> getAllRootCategories(int page, int size, String sortBy, String sortDir) {
+        Sort sort = sortDir.equalsIgnoreCase("desc")
+                ? Sort.by(sortBy).descending()
+                : Sort.by(sortBy).ascending();
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<Category> rootCategories = categoryRepository.findByParentIsNull(pageable);
         return CategoryMapper.toResponseDtoList(rootCategories);
     }
 
-    // ---------------- GET SUBCATEGORIES OF A CATEGORY ----------------
     @Transactional(readOnly = true)
-    public List<CategoryResponseDto> getSubCategories(Long parentId) {
-        Category parent = categoryRepository.findById(parentId)
-                .orElseThrow(() -> new RuntimeException("Parent category not found"));
-        List<Category> subCategories = parent.getSubCategories();
+    public Page<CategoryResponseDto> getSubCategories(Long parentId, int page, int size,String sortBy, String sortDir) {
+        Sort sort = sortDir.equalsIgnoreCase("desc")
+                ? Sort.by(sortBy).descending()
+                : Sort.by(sortBy).ascending();
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<Category> subCategories = categoryRepository.findByParentId(parentId, pageable);
+
         return CategoryMapper.toResponseDtoList(subCategories);
     }
 
     @Transactional(readOnly = true)
-    public List<CategoryResponseDto> getAllCategories() {
-        return categoryRepository.findAll()
-                .stream()
-                .map(CategoryMapper::toResponseDto)
-                .toList();
+    public Page<CategoryResponseDto> getAllCategories(Pageable pageable) {
+        return categoryRepository.findAll(pageable)
+                .map(CategoryMapper::toResponseDto);
     }
 
 }

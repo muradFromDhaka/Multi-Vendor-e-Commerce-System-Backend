@@ -4,6 +4,7 @@ import com.abc.SpringSecurityExample.DTOs.projectDtos.AddressRequestDto;
 import com.abc.SpringSecurityExample.DTOs.projectDtos.AddressResponseDto;
 import com.abc.SpringSecurityExample.service.AddressService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,8 +17,11 @@ public class AddressController {
     private final AddressService addressService;
 
     @GetMapping
-    public ResponseEntity<List<AddressResponseDto>> getAll(){
-        List<AddressResponseDto> responseDto = addressService.getAll();
+    public ResponseEntity<Page<AddressResponseDto>> getAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ){
+        Page<AddressResponseDto> responseDto = addressService.getAll(page, size);
 
         return ResponseEntity.ok(responseDto);
     }

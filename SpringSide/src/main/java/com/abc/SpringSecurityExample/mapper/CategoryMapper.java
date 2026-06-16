@@ -3,6 +3,7 @@ package com.abc.SpringSecurityExample.mapper;
 import com.abc.SpringSecurityExample.DTOs.projectDtos.CategoryRequestDto;
 import com.abc.SpringSecurityExample.DTOs.projectDtos.CategoryResponseDto;
 import com.abc.SpringSecurityExample.entity.Category;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -45,10 +46,8 @@ public class CategoryMapper {
         return dto;
     }
 
-    public static List<CategoryResponseDto> toResponseDtoList(List<Category> categories) {
-        return categories.stream()
-                .map(CategoryMapper::toResponseDto)
-                .collect(Collectors.toList());
+    public static Page<CategoryResponseDto> toResponseDtoList(Page<Category> categories) {
+        return categories.map(CategoryMapper::toResponseDto);
     }
 }
 

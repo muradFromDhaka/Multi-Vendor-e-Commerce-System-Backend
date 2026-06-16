@@ -22,15 +22,15 @@ public class Category extends BaseEntity{
 
     private String imageUrl;
 
-    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = false)
+    @OneToMany(mappedBy = "category",fetch = FetchType.LAZY, orphanRemoval = false)
     @JsonIgnoreProperties("category")
     private List<Product> products;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
     private Category parent;
 
-    @OneToMany(mappedBy = "parent")
+    @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY)
     private List<Category> subCategories;
 
 }

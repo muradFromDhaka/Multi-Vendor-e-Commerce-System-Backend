@@ -8,6 +8,9 @@ import com.abc.SpringSecurityExample.mapper.AddressMapper;
 import com.abc.SpringSecurityExample.repository.AddressRepository;
 import com.abc.SpringSecurityExample.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,11 +23,11 @@ public class AddressService {
     private final AddressRepository addressRepository;
     private final AddressMapper addressMapper;
 
-    public List<AddressResponseDto> getAll(){
-        List<AddressResponseDto> dto = addressRepository.findAll()
-                .stream()
-                .map(address -> addressMapper.toDto(address, new AddressResponseDto()))
-                .toList();
+    public Page<AddressResponseDto> getAll(int page, int size){
+        Pageable pageable = PageRequest.of(page, size);
+        Page<AddressResponseDto> dto = addressRepository.findAll(pageable)
+                .map(address -> addressMapper.toDto(address, new AddressResponseDto()));
+
 
         return dto;
     }

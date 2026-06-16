@@ -9,6 +9,8 @@ import com.abc.SpringSecurityExample.repository.VendorRepository;
 import com.abc.SpringSecurityExample.service.ProductService;
 import com.abc.SpringSecurityExample.service.VendorService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -37,17 +39,6 @@ public class ProductController {
         return ResponseEntity.ok(created);
     }
 
-//    // ---------------- UPDATE PRODUCT ----------------
-//    @PutMapping("/{id}")
-//    public ResponseEntity<ProductResponseDto> updateProduct(
-//            @PathVariable Long id,
-//            @RequestPart("product") ProductRequestDto dto,
-//            @RequestPart(value = "images", required = false) MultipartFile[] images
-//    ) throws IOException {
-//        ProductResponseDto updated = productService.updateProduct(id, dto, images);
-//        return ResponseEntity.ok(updated);
-//    }
-
 
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ProductResponseDto updateProduct(
@@ -59,93 +50,87 @@ public class ProductController {
     }
 
 
-    // ---------------- GET PRODUCT BY ID ----------------
     @GetMapping("/{id}")
     public ResponseEntity<ProductResponseDto> getProduct(@PathVariable Long id) {
-        ProductResponseDto product = productService.getProduct(id);
+        ProductResponseDto product = productService.getProductById(id);
         return ResponseEntity.ok(product);
     }
 
-    // ---------------- DELETE PRODUCT ----------------
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteProduct(@PathVariable Long id) throws IOException {
         productService.deleteProduct(id);
         return ResponseEntity.ok("Product deleted successfully");
     }
 
-    // ---------------- LIST ALL PRODUCTS ----------------
     @GetMapping
-    public ResponseEntity<List<ProductResponseDto>> listAllProducts() {
-        List<ProductResponseDto> products = productService.listAllProducts();
+    public ResponseEntity<Page<ProductResponseDto>> getAllProducts(
+            Pageable pageable
+    ) {
+        Page<ProductResponseDto> products = productService.getAllProducts( pageable);
         return ResponseEntity.ok(products);
     }
 
-    // ---------------- POPULAR / LATEST / DISCOUNTED / TRENDING ----------------
     @GetMapping("/most-popular")
-    public ResponseEntity<List<ProductResponseDto>> getMostPopular(@RequestParam(defaultValue = "10") int limit) {
-        return ResponseEntity.ok(productService.getMostPopularProducts(limit));
+    public ResponseEntity<Page<ProductResponseDto>> getMostPopular(Pageable pageable) {
+        return ResponseEntity.ok(productService.getMostPopularProducts(pageable));
     }
 
     @GetMapping("/latest")
-    public ResponseEntity<List<ProductResponseDto>> getLatest(@RequestParam(defaultValue = "10") int limit) {
-        return ResponseEntity.ok(productService.getLatestProducts(limit));
+    public ResponseEntity<Page<ProductResponseDto>> getLatest(Pageable pageable) {
+        return ResponseEntity.ok(productService.getLatestProducts(pageable));
     }
 
     @GetMapping("/discounted")
-    public ResponseEntity<List<ProductResponseDto>> getDiscounted(@RequestParam(defaultValue = "10") int limit) {
-        return ResponseEntity.ok(productService.getDiscountedProducts(limit));
+    public ResponseEntity<Page<ProductResponseDto>> getDiscounted(Pageable pageable) {
+        return ResponseEntity.ok(productService.getDiscountedProducts( pageable));
     }
 
     @GetMapping("/trending")
-    public ResponseEntity<List<ProductResponseDto>> getTrending(@RequestParam(defaultValue = "10") int limit) {
-        return ResponseEntity.ok(productService.getTrendingProducts(limit));
+    public ResponseEntity<Page<ProductResponseDto>> getTrending(Pageable pageable) {
+        return ResponseEntity.ok(productService.getTrendingProducts(pageable));
     }
 
     @GetMapping("/category/{categoryId}")
-    public ResponseEntity<List<ProductResponseDto>> getProductsByCategory(
-            @PathVariable Long categoryId) {
-        List<ProductResponseDto> products = productService.getProductsByCategory(categoryId);
+    public ResponseEntity<Page<ProductResponseDto>> getProductsByCategory(@PathVariable Long categoryId, Pageable pageable)
+              {
+        Page<ProductResponseDto> products = productService.getProductsByCategory(categoryId, pageable);
         return ResponseEntity.ok(products);
     }
-
-
-    // 🔹 Category name wise products
-//    @GetMapping("/category-name/{categoryName}")
-//    public ResponseEntity<List<ProductResponseDto>> getProductsByCategoryName(
-//            @PathVariable String categoryName) {
-//        List<ProductResponseDto> products = productService.getProductsByCategoryName(categoryName);
-//        return ResponseEntity.ok(products);
-//    }
-
 
 
 
     @GetMapping("/search")
-    public ResponseEntity<List<ProductResponseDto>> searchProducts(
-            @RequestParam String keyword
-    ) {
+    public ResponseEntity<Page<ProductResponseDto>> searchProducts(@RequestParam String keyword, Pageable pageable) {
         return ResponseEntity.ok(
-                productService.searchProducts(keyword)
+                productService.searchProducts(keyword,pageable)
         );
     }
 
-    /** Brand অনুযায়ী প্রোডাক্ট fetch */
     @GetMapping("/brand/{brandId}")
-    public List<ProductResponseDto> getProductsByBrand(@PathVariable Long brandId) {
-        return productService.getProductsByBrandDto(brandId);
+    public ResponseEntity<Page<ProductResponseDto>> getProductsByBrand(@PathVariable Long brandId,
+                                                                       Pageable pageable
+                                                       ) {
+        return ResponseEntity.ok(
+                productService.getProductsByBrandDto(brandId, pageable)
+        );
     }
 
     @GetMapping("/vendor/{vendorId}")
-    public List<ProductResponseDto> getProductsByVendor(@PathVariable Long vendorId) {
-        return productService.getProductsByVendorId(vendorId);
+    public Page<ProductResponseDto> getProductsByVendor(@PathVariable Long vendorId,
+                                                        Pageable pageable
+                                                        ) {
+        return productService.getProductsByVendorId(vendorId, pageable);
     }
 
     @GetMapping("/my/product")
-    public List<ProductResponseDto> getMyProducts(Authentication authentication) {
+    public Page<ProductResponseDto> getMyProducts(
+            Authentication authentication,
+            Pageable pageable
+            ) {
         String username = authentication.getName(); // get logged-in username
         Vendor vendor = vendorRepository.findByUserUserName(username)
                 .orElseThrow(() -> new RuntimeException("Vendor not found for this user"));
-        return productService.getProductsByVendorId(vendor.getId());
+        return productService.getProductsByVendorId(vendor.getId(), pageable);
     }
 
 

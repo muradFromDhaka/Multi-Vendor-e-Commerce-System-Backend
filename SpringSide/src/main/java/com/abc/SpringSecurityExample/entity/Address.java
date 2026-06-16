@@ -1,7 +1,6 @@
 package com.abc.SpringSecurityExample.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -15,6 +14,7 @@ public class Address extends BaseEntity {
     private String country;
     private String zipCode;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="user_name")
     private User user;
 }

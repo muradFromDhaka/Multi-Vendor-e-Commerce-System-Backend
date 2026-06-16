@@ -11,13 +11,19 @@ import java.util.List;
 import java.util.Set;
 
 @Entity
+@Table(
+        name = "products",
+        indexes = {
+                @Index(name = "idx_product_vendor", columnList = "vendor_id"),
+                @Index(name = "idx_product_category", columnList = "category_id"),
+                @Index(name = "idx_product_brand", columnList = "brand_id")
+        }
+)
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name="products")
-@ToString(exclude = {"imageUrls", "category", "reviews"})
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+//@Table(name="products")
 public class Product extends BaseEntity{
 	
 	    @Column(nullable = false, length=100, name= "product_name")
@@ -35,21 +41,17 @@ public class Product extends BaseEntity{
 
 	    @ManyToOne(fetch = FetchType.LAZY)
 	    @JoinColumn(name = "category_id")
-	    @JsonIgnoreProperties("products")
 	    private Category category;
 	    
-	    @OneToMany(mappedBy = "product")
-	    @JsonIgnoreProperties("product")
+	    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY,cascade = CascadeType.ALL, orphanRemoval = true)
 	    private List<Deal> deals;
 	    
 	    
-	    @OneToMany(mappedBy = "product")
-	    @JsonIgnoreProperties("product")
+	    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
 	    private List<Review> reviews;
 	    
 	    
-	    @OneToMany(mappedBy = "product")
-	    @JsonIgnoreProperties("product")
+	    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
 	    private List<CartItem> cartItem;
 
     @Enumerated(EnumType.STRING)
@@ -61,14 +63,14 @@ public class Product extends BaseEntity{
     private String sku;
 
     private Double averageRating;
-	    private Integer totalReviews;
+	private Integer totalReviews;
 
-    @OneToMany(mappedBy = "product")
+    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
     private List<ProductVariant> variants;
 
     private BigDecimal discountPrice;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "brand_id")
     private Brand brand;
 
@@ -77,14 +79,14 @@ public class Product extends BaseEntity{
 	    @Column(name="image_url")
 	    private List<String> imageUrls;
 	    
-	    @ManyToMany(mappedBy = "products")
+	    @ManyToMany(mappedBy = "products", fetch = FetchType.LAZY)
 	    private Set<Wishlist> wishlists;
 
-	    @ManyToOne
+	    @ManyToOne(fetch = FetchType.LAZY)
 	    @JoinColumn(name = "vendor_id")
 	    private Vendor vendor;
 
-    @OneToMany(mappedBy = "product")
+    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
     private List<Inventory> inventories;
 	    
 }

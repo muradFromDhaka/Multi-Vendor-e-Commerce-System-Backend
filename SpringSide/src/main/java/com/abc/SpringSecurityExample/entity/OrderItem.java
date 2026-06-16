@@ -12,8 +12,6 @@ import java.math.BigDecimal;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString(exclude = {"order", "product", "vendor"})
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class OrderItem extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)

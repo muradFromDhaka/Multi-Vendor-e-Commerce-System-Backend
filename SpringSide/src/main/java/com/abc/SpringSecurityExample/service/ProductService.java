@@ -2,6 +2,7 @@ package com.abc.SpringSecurityExample.service;
 
 import com.abc.SpringSecurityExample.DTOs.projectDtos.ProductRequestDto;
 import com.abc.SpringSecurityExample.DTOs.projectDtos.ProductResponseDto;
+import com.abc.SpringSecurityExample.Util.PageableUtil;
 import com.abc.SpringSecurityExample.entity.Brand;
 import com.abc.SpringSecurityExample.entity.Category;
 import com.abc.SpringSecurityExample.entity.Product;
@@ -13,7 +14,10 @@ import com.abc.SpringSecurityExample.repository.ProductRepository;
 import com.abc.SpringSecurityExample.repository.VendorRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -159,8 +163,7 @@ public class ProductService {
 
 
 
-    /** GET PRODUCT BY ID */
-    public ProductResponseDto getProduct(Long id) {
+    public ProductResponseDto getProductById(Long id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
         return ProductMapper.toDto(product);
@@ -206,55 +209,53 @@ public class ProductService {
     }
 
 
-
-
-
-    /** LIST ALL PRODUCTS */
-    public List<ProductResponseDto> listAllProducts() {
-        return productRepository.findByDeletedFalse()
-                .stream()
-                .map(ProductMapper::toDto)
-                .collect(Collectors.toList());
+    public Page<ProductResponseDto> getAll(Pageable pageable){
+        return productRepository.findAll(pageable)
+                .map(p-> ProductMapper.toDto(p));
     }
 
-    /** LIST MOST POPULAR PRODUCTS */
-    public List<ProductResponseDto> getMostPopularProducts(int limit) {
-        return productRepository.findMostPopularProducts(PageRequest.of(0, limit))
-                .stream()
-                .map(ProductMapper::toDto)
-                .collect(Collectors.toList());
-    }
+    public Page<ProductResponseDto> getAllProducts( Pageable pageable) {
 
-    /** LIST LATEST PRODUCTS */
-    public List<ProductResponseDto> getLatestProducts(int limit) {
-        return productRepository.findLatestProducts(PageRequest.of(0, limit))
-                .stream()
-                .map(ProductMapper::toDto)
-                .collect(Collectors.toList());
-    }
-
-    /** LIST DISCOUNTED PRODUCTS */
-    public List<ProductResponseDto> getDiscountedProducts(int limit) {
-        return productRepository.findDiscountedProducts(PageRequest.of(0, limit))
-                .stream()
-                .map(ProductMapper::toDto)
-                .collect(Collectors.toList());
-    }
-
-    /** LIST TRENDING PRODUCTS */
-    public List<ProductResponseDto> getTrendingProducts(int limit) {
-        return productRepository.findTrendingProducts(PageRequest.of(0, limit))
-                .stream()
-                .map(ProductMapper::toDto)
-                .collect(Collectors.toList());
+        return productRepository.findByDeletedFalse(pageable)
+                .map(ProductMapper::toDto);
     }
 
 
-    public List<ProductResponseDto> getProductsByCategory(Long categoryId) {
-        List<Product> products = productRepository.findByCategoryId(categoryId);
+    public Page<ProductResponseDto> getMostPopularProducts( Pageable pageable) {
+
+        return productRepository.findMostPopularProducts(pageable)
+                .map(ProductMapper::toDto);
+    }
+
+
+    public Page<ProductResponseDto> getLatestProducts( Pageable pageable) {
+
+        return productRepository.findLatestProducts(pageable)
+                .map(ProductMapper::toDto);
+
+    }
+
+
+    public Page<ProductResponseDto> getDiscountedProducts( Pageable pageable) {
+
+        return productRepository.findDiscountedProducts(pageable)
+                .map(ProductMapper::toDto);
+    }
+
+
+    public Page<ProductResponseDto> getTrendingProducts( Pageable pageable) {
+
+        return productRepository.findTrendingProducts(pageable)
+                .map(ProductMapper::toDto);
+    }
+
+
+    public Page<ProductResponseDto> getProductsByCategory(Long categoryId, Pageable pageable) {
+
+        Page<Product> products = productRepository.findByCategoryId(categoryId, pageable);
 
         // Mapping: Product → ProductResponseDto
-        return products.stream().map(p -> {
+        return products.map(p -> {
             ProductResponseDto dto = new ProductResponseDto();
             dto.setId(p.getId());
             dto.setName(p.getName());
@@ -263,38 +264,35 @@ public class ProductService {
             dto.setAverageRating(p.getAverageRating());
             dto.setImageUrls(p.getImageUrls());
             return dto;
-        }).toList();
+        });
     }
 
 
-    public List<ProductResponseDto> searchProducts(String keyword) {
+    public Page<ProductResponseDto> searchProducts(String keyword, Pageable pageable) {
 
-        List<Product> products = productRepository.searchProducts(keyword);
 
-        return products.stream()
-                .map(ProductMapper::toDto)
-                .toList();
+        Page<Product> products = productRepository.searchProducts(keyword, pageable);
+
+        return products.map(ProductMapper::toDto);
     }
 
 
 
-    public List<ProductResponseDto> getProductsByBrandDto(Long brandId) {
-        List<Product> products = productRepository.findByBrandId(brandId);
+    public Page<ProductResponseDto> getProductsByBrandDto(Long brandId,  Pageable pageable) {
+
+        Page<Product> products = productRepository.findByBrandId(brandId, pageable);
 
         // Map Product -> ProductResponseDto
-        return products.stream()
-                .map(ProductMapper::toDto)
-                .collect(Collectors.toList());
+        return products.map(ProductMapper::toDto);
     }
 
 
-    public List<ProductResponseDto> getProductsByVendorId(Long vendorID) {
-        List<Product> products = productRepository.findByVendorId(vendorID);
+    public Page<ProductResponseDto> getProductsByVendorId(Long vendorID, Pageable pageable) {
+
+        Page<Product> products = productRepository.findByVendorId(vendorID,pageable);
 
         // Map Product -> ProductResponseDto
-        return products.stream()
-                .map(ProductMapper::toDto)
-                .collect(Collectors.toList());
+        return products.map(ProductMapper::toDto);
     }
 
 

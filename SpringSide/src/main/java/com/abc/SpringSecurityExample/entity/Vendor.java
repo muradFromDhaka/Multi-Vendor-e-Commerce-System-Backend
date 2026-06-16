@@ -11,7 +11,6 @@ import lombok.Setter;
 @Table(name = "vendors")
 public class Vendor extends BaseEntity {
 
-    // ---------------- Basic Vendor Info ----------------
     @Column(nullable = false, unique = true)
     private String shopName;
 
@@ -26,7 +25,6 @@ public class Vendor extends BaseEntity {
 
     private Double rating = 0.0;
 
-    // ---------------- Relation to User ----------------
     @OneToOne
     @JoinColumn(
             name = "username",               // FK column in vendors table

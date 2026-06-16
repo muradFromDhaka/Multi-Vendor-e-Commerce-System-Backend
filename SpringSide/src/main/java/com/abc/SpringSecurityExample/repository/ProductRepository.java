@@ -2,8 +2,9 @@ package com.abc.SpringSecurityExample.repository;
 
 import com.abc.SpringSecurityExample.DTOs.projectDtos.ProductResponseDto;
 import com.abc.SpringSecurityExample.entity.Product;
-import com.abc.SpringSecurityExample.enums.ProductStatus;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,15 +14,37 @@ import java.util.List;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
-    // ================= BASIC =================
-    List<Product> findByDeletedFalse();
 
-    // ================= VENDOR =================
-    List<Product> findByVendorId(Long vendorId);
+    @Query("""
+            SELECT new ProductResponseDto(...)
+            FROM Product p
+            JOIN p.category c
+            JOIN p.brand b
+            JOIN p.vendor v
+            """)
+    Page<ProductResponseDto> findByDeletedFalse(Pageable pageable);
+
+    @EntityGraph(attributePaths = {"category","brand","vendor"})
+    @Query("""
+    SELECT p
+    FROM Product p
+    WHERE p.deleted = false
+    """)
+    Page<Product> findAllProducts(Pageable pageable);
+
+
+    @EntityGraph(attributePaths = {"category","brand","vendor"})
+    Page<Product> findByVendorId(Long vendorId, Pageable pageable);
 
     List<Product> findByVendorIdAndDeletedFalse(Long vendorId);
 
-    // ================= CATEGORY =================
+
+    @EntityGraph(attributePaths = {"brand","vendor","category"})
+    Page<Product> findProducts(Pageable pageable);
+
+
+
+
     @Query("""
         SELECT p FROM Product p
         WHERE p.category.id = :categoryId
@@ -30,58 +53,49 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     """)
     List<Product> findPopularByCategory(Long categoryId, Pageable pageable);
 
-    // ================= BRAND =================
+    @EntityGraph(attributePaths = {"brand", "vendor", "category"})
     @Query("""
-        SELECT p FROM Product p
-        WHERE p.brand.id = :brandId
-        AND p.deleted = false
-        ORDER BY p.soldCount DESC
-    """)
-    List<Product> findPopularByBrand(Long brandId, Pageable pageable);
+    SELECT p FROM Product p
+    WHERE p.brand.id = :brandId
+    AND p.deleted = false
+    ORDER BY p.soldCount DESC
+""")
+    List<Product> findPopularByBrand(@Param("brandId") Long brandId, Pageable pageable);
 
-    // ================= PRICE =================
     List<Product> findByPriceBetween(BigDecimal min, BigDecimal max);
 
-    // ================= DISCOUNT =================
     @Query("""
         SELECT p FROM Product p
         WHERE p.discountPrice IS NOT NULL
         AND p.discountPrice < p.price
         AND p.deleted = false
     """)
-    List<Product> findDiscountedProducts(Pageable pageable);
+    Page<Product> findDiscountedProducts(Pageable pageable);
 
-    // ================= LATEST =================
     @Query("""
         SELECT p FROM Product p
         WHERE p.deleted = false
         ORDER BY p.createdAt DESC
     """)
-    List<Product> findLatestProducts(Pageable pageable);
+    Page<Product> findLatestProducts(Pageable pageable);
 
-    // ================= POPULAR =================
     @Query("""
         SELECT p FROM Product p
         WHERE p.deleted = false
         ORDER BY p.soldCount DESC
     """)
-    List<Product> findMostPopularProducts(Pageable pageable);
+    Page<Product> findMostPopularProducts(Pageable pageable);
 
-    // ================= TRENDING =================
     @Query("""
         SELECT p FROM Product p
         WHERE p.deleted = false
         AND p.soldCount > 0
         ORDER BY p.soldCount DESC
     """)
-    List<Product> findTrendingProducts(Pageable pageable);
+    Page<Product> findTrendingProducts(Pageable pageable);
 
 
-    List<Product> findByCategoryId(Long categoryId);
-
-//    @Query("SELECT p FROM Product p WHERE LOWER(p.category.name) LIKE LOWER(CONCAT('%', :name, '%'))")
-//    List<Product> searchByCategoryName(@Param("name") String name);
-
+    Page<Product> findByCategoryId(Long categoryId, Pageable pageable);
 
     @Query("""
         SELECT DISTINCT p
@@ -93,11 +107,10 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             OR LOWER(c.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
             OR LOWER(v.shopName) LIKE LOWER(CONCAT('%', :keyword, '%'))
     """)
-    List<Product> searchProducts(@Param("keyword") String keyword);
+    Page<Product> searchProducts(@Param("keyword") String keyword, Pageable pageable);
 
 
-    // Brand ID অনুযায়ী প্রোডাক্ট খুঁজবে
-    List<Product> findByBrandId(Long brandId);
+    Page<Product> findByBrandId(Long brandId, Pageable pageable);
 
 
 }
